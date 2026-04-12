@@ -1,10 +1,62 @@
--- ---- MÓDULO PESSOA ----
+-- =============================================================================
+-- 1. TABELAS BASE (SEM DEPENDÊNCIAS / FK)
+-- =============================================================================
+
+-- Tabela central de pessoas
 CREATE TABLE tb_Pessoa (
     pk_cpf CHAR(11) PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     data_Nasc DATE NOT NULL
 );
 
+-- Tabela de tipos de monitoria
+CREATE TABLE tb_Tipo_monitor (
+    pk_cod_tipo INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(50)
+);
+
+-- Tabela de cargos da instituição
+CREATE TABLE tb_Cargo (
+    pk_cod_Cargo INT AUTO_INCREMENT PRIMARY KEY,
+    cargo VARCHAR(20) NOT NULL
+);
+
+-- Tabela de cursos oferecidos
+CREATE TABLE tb_Curso (
+    pk_cod_Curso INT AUTO_INCREMENT PRIMARY KEY,
+    nome_Curso VARCHAR(50),
+    descricao VARCHAR(200) NOT NULL,
+    duracao VARCHAR(20) NOT NULL
+);
+
+-- Tabela de bandas musicais
+CREATE TABLE tb_Banda (
+    pk_cod_Banda INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(20) NOT NULL
+);
+
+-- Tabela de artistas/compositores
+CREATE TABLE tb_Artista (
+    pk_nome_artistico VARCHAR(100) PRIMARY KEY,
+    nome_real VARCHAR(100),
+    data_nascimento DATE,
+    nacionalidade VARCHAR(50)
+);
+
+-- Tabela de gêneros musicais
+CREATE TABLE tb_Genero (
+    pk_cod_genero INT AUTO_INCREMENT PRIMARY KEY,
+    nome_genero VARCHAR(50) NOT NULL
+);
+
+
+-- =============================================================================
+-- 2. TABELAS COM DEPENDÊNCIA DIRETA (1 FK)
+-- =============================================================================
+
+-- ---- MÓDULO PESSOA (DEPENDENTES) ----
+
+-- Telefones vinculados a uma pessoa
 CREATE TABLE tb_Telefone (
     fk_cpf CHAR(11),
     pk_numero VARCHAR(15) NOT NULL,
@@ -14,6 +66,7 @@ CREATE TABLE tb_Telefone (
     FOREIGN KEY (fk_cpf) REFERENCES tb_Pessoa(pk_cpf)
 );
 
+-- Endereços vinculados a uma pessoa
 CREATE TABLE tb_Endereco (
     pk_cpf CHAR(11),
     pk_CEP CHAR(8),
@@ -23,7 +76,7 @@ CREATE TABLE tb_Endereco (
     FOREIGN KEY (pk_cpf) REFERENCES tb_Pessoa(pk_cpf)
 );
 
--- ---- ALUNO / RESPONSÁVEL ----
+-- Especialização: Aluno
 CREATE TABLE tb_Aluno (
     pk_cpf CHAR(11) PRIMARY KEY,
     nome_Escola VARCHAR(100) NOT NULL,
@@ -31,103 +84,22 @@ CREATE TABLE tb_Aluno (
     FOREIGN KEY (pk_cpf) REFERENCES tb_Pessoa(pk_cpf)
 );
 
+-- Especialização: Responsável
 CREATE TABLE tb_Responsavel (
     pk_cpf CHAR(11) PRIMARY KEY,
     grau_parentesco VARCHAR(20) NOT NULL,
     FOREIGN KEY (pk_cpf) REFERENCES tb_Pessoa(pk_cpf)
 );
 
-CREATE TABLE tb_Aluno_Responsavel (
-    fk_cpf_aluno CHAR(11),
-    fk_cpf_responsavel CHAR(11),
-    PRIMARY KEY (fk_cpf_aluno, fk_cpf_responsavel),
-    FOREIGN KEY (fk_cpf_aluno) REFERENCES tb_Aluno(pk_cpf),
-    FOREIGN KEY (fk_cpf_responsavel) REFERENCES tb_Responsavel(pk_cpf)
-);
-
--- ---- FUNCIONÁRIOS ----
+-- Especialização: Funcionário
 CREATE TABLE tb_Funcionario (
     pk_cpf_func CHAR(11) PRIMARY KEY,
     FOREIGN KEY (pk_cpf_func) REFERENCES tb_Pessoa(pk_cpf)
 );
 
-CREATE TABLE tb_Tipo_monitor (
-    pk_cod_tipo INT AUTO_INCREMENT PRIMARY KEY,
-    descricao VARCHAR(50)
-);
+-- ---- MÓDULO MÚSICA E INSTRUMENTOS ----
 
-CREATE TABLE tb_Cargo (
-    pk_cod_Cargo INT AUTO_INCREMENT PRIMARY KEY,
-    cargo VARCHAR(20) NOT NULL
-);
-
-CREATE TABLE tb_Funcionario_cargo (
-    fk_cpf_funcionario CHAR(11),
-    fk_cod_cargo INT,
-    PRIMARY KEY (fk_cpf_funcionario, fk_cod_cargo),
-    FOREIGN KEY (fk_cpf_funcionario) REFERENCES tb_Funcionario(pk_cpf_func),
-    FOREIGN KEY (fk_cod_cargo) REFERENCES tb_Cargo(pk_cod_Cargo)
-);
-
--- ---- CURSO / TURMA ----
-CREATE TABLE tb_Curso (
-    pk_cod_Curso INT AUTO_INCREMENT PRIMARY KEY,
-    nome_Curso VARCHAR(50),
-    descricao VARCHAR(200) NOT NULL,
-    duracao VARCHAR(20) NOT NULL
-);
-
-CREATE TABLE tb_Turma (
-    pk_nome_Turma VARCHAR(20),
-    pk_horario VARCHAR(20),
-    fk_cod_Curso INT,
-    idade_min INT NOT NULL,
-    idade_max INT NOT NULL,
-    qtd_alunos INT NOT NULL,
-    horario_inicio TIME NOT NULL,
-    hora_fim TIME NOT NULL,
-    PRIMARY KEY (pk_nome_Turma, pk_horario),
-    FOREIGN KEY (fk_cod_Curso) REFERENCES tb_Curso(pk_cod_Curso)
-);
-
-CREATE TABLE tb_Matricula (
-    id_Matricula INT AUTO_INCREMENT,
-    pk_cpf CHAR(11),
-    data_Matricula DATE NOT NULL,
-    fk_nome_Turma VARCHAR(20),
-    fk_horario VARCHAR(20),
-    periodo VARCHAR(10) NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    PRIMARY KEY (id_Matricula, pk_cpf),
-    FOREIGN KEY (pk_cpf) REFERENCES tb_Aluno(pk_cpf),
-    FOREIGN KEY (fk_nome_Turma, fk_horario) REFERENCES tb_Turma(pk_nome_Turma, pk_horario)
-);
-
-CREATE TABLE tb_Turma_funcionario (
-    fk_nome_turma VARCHAR(20),
-    fk_cpf_funcionario CHAR(11),
-    fk_cod_tipo INT,
-    PRIMARY KEY (fk_nome_turma, fk_cpf_funcionario),
-    FOREIGN KEY (fk_nome_turma) REFERENCES tb_Turma(pk_nome_Turma),
-    FOREIGN KEY (fk_cpf_funcionario) REFERENCES tb_Funcionario(pk_cpf_func),
-    FOREIGN KEY (fk_cod_tipo) REFERENCES tb_Tipo_monitor(pk_cod_tipo)
-);
-
-CREATE TABLE tb_Frequencia (
-    id_Frequencia INT AUTO_INCREMENT PRIMARY KEY,
-    data_aula DATE NOT NULL,
-    presenca BOOLEAN NOT NULL,
-    observacao VARCHAR(200),
-    id_Matricula INT NOT NULL,
-    FOREIGN KEY (id_Matricula) REFERENCES tb_Matricula(id_Matricula)
-);
-
--- ---- BANDA / INSTRUMENTO ----
-CREATE TABLE tb_Banda (
-    pk_cod_Banda INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(20) NOT NULL
-);
-
+-- Instrumentos pertencentes ou alocados a uma banda
 CREATE TABLE tb_Instrumento (
     pk_num_Serie VARCHAR(20) PRIMARY KEY,
     nome_Instrumento VARCHAR(50) NOT NULL,
@@ -138,28 +110,7 @@ CREATE TABLE tb_Instrumento (
     FOREIGN KEY (fk_cod_banda) REFERENCES tb_Banda(pk_cod_Banda)
 );
 
-CREATE TABLE tb_Banda_Pessoa (
-    pk_cod_Banda INT,
-    pk_cpf_banda CHAR(11),
-    funcao_Banda VARCHAR(30) NOT NULL,
-    data_Ingresso DATE,
-    PRIMARY KEY (pk_cod_Banda, pk_cpf_banda),
-    FOREIGN KEY (pk_cod_Banda) REFERENCES tb_Banda(pk_cod_Banda),
-    FOREIGN KEY (pk_cpf_banda) REFERENCES tb_Pessoa(pk_cpf)
-);
-
-CREATE TABLE tb_Artista (
-    pk_nome_artistico VARCHAR(100) PRIMARY KEY,
-    nome_real VARCHAR(100),
-    data_nascimento DATE,
-    nacionalidade VARCHAR(50)
-);
-
-CREATE TABLE tb_Genero (
-    pk_cod_genero INT AUTO_INCREMENT PRIMARY KEY,
-    nome_genero VARCHAR(50) NOT NULL
-);
-
+-- Músicas vinculadas a Artistas e Gêneros
 CREATE TABLE tb_Musica (
     pk_ISRC CHAR(12) PRIMARY KEY,
     nome_Musica VARCHAR(100) NOT NULL,
@@ -171,27 +122,9 @@ CREATE TABLE tb_Musica (
     FOREIGN KEY (fk_nome_artista) REFERENCES tb_Artista(pk_nome_artistico)
 );
 
-CREATE TABLE tb_Banda_Musica (
-    pk_cod_Banda INT,
-    pk_ISRC CHAR(12),
-    ordem_Repertorio INT,
-    PRIMARY KEY (pk_cod_Banda, pk_ISRC),
-    FOREIGN KEY (pk_cod_Banda) REFERENCES tb_Banda(pk_cod_Banda),
-    FOREIGN KEY (pk_ISRC) REFERENCES tb_Musica(pk_ISRC)
-);
+-- ---- MÓDULO EVENTOS ----
 
-CREATE TABLE tb_Gravacao (
-    pk_id_gravacao INT AUTO_INCREMENT PRIMARY KEY,
-    nome_arquivo VARCHAR(100) NOT NULL,
-    caminho_arquivo VARCHAR(255) NOT NULL,
-    data_gravacao DATE NOT NULL,
-    fk_cod_banda INT,
-    fk_ISRC CHAR(12),
-    FOREIGN KEY (fk_cod_banda) REFERENCES tb_Banda(pk_cod_Banda),
-    FOREIGN KEY (fk_ISRC) REFERENCES tb_Musica(pk_ISRC)
-);
-
--- ---- EVENTOS ----
+-- Eventos realizados por bandas
 CREATE TABLE tb_Evento (
     pk_cod_evento INT AUTO_INCREMENT,
     local VARCHAR(100) NOT NULL,
@@ -202,38 +135,9 @@ CREATE TABLE tb_Evento (
     FOREIGN KEY (fk_cod_banda) REFERENCES tb_Banda(pk_cod_Banda)
 );
 
-CREATE TABLE tb_Pessoa_Evento (
-    fk_cpf_evento CHAR(11),
-    fk_cod_evento INT,
-    PRIMARY KEY (fk_cpf_evento),
-    FOREIGN KEY (fk_cpf_evento) REFERENCES tb_Pessoa(pk_cpf),
-    FOREIGN KEY (fk_cod_evento) REFERENCES tb_Evento(pk_cod_evento)
-);
+-- ---- MÓDULO FINANCEIRO ----
 
-CREATE TABLE tb_Autorizacao_Evento (
-    pk_cpf_aluno CHAR(11),
-    pk_cod_evento INT,
-    pk_cpf_responsavel CHAR(11),
-    data_emissao DATE NOT NULL,
-    autorizado BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY (pk_cpf_aluno, pk_cod_evento, pk_cpf_responsavel),
-    FOREIGN KEY (pk_cpf_aluno) REFERENCES tb_Aluno(pk_cpf),
-    FOREIGN KEY (pk_cod_evento) REFERENCES tb_Evento(pk_cod_evento),
-    FOREIGN KEY (pk_cpf_responsavel) REFERENCES tb_Responsavel(pk_cpf)
-);
-
-CREATE TABLE tb_Autorizacao_imagem (
-    pk_id_autorizacao INT AUTO_INCREMENT PRIMARY KEY,
-    data_autorizacao DATE NOT NULL,
-    autorizacao BOOLEAN NOT NULL,
-    observacao VARCHAR(200),
-    fk_cpf_aluno CHAR(11),
-    fk_cpf_responsavel CHAR(11),
-    FOREIGN KEY (fk_cpf_aluno) REFERENCES tb_Aluno(pk_cpf),
-    FOREIGN KEY (fk_cpf_responsavel) REFERENCES tb_Responsavel(pk_cpf)
-);
-
--- ---- FINANCEIRO ----
+-- Registro de contas a pagar para pessoas/fornecedores
 CREATE TABLE tb_Conta_Pagar (
     id_conta_pagar INT AUTO_INCREMENT PRIMARY KEY,
     descricao VARCHAR(100) NOT NULL,
@@ -249,6 +153,7 @@ CREATE TABLE tb_Conta_Pagar (
     FOREIGN KEY (fk_cpf_favorecido) REFERENCES tb_Pessoa(pk_cpf)
 );
 
+-- Registro de contas a receber de pessoas
 CREATE TABLE tb_Conta_Receber (
     id_conta_receber INT AUTO_INCREMENT PRIMARY KEY,
     descricao VARCHAR(100) NOT NULL,
@@ -264,7 +169,9 @@ CREATE TABLE tb_Conta_Receber (
     FOREIGN KEY (fk_cpf_pagador) REFERENCES tb_Pessoa(pk_cpf)
 );
 
--- ---- EMPRÉSTIMO ----
+-- ---- MÓDULO EMPRÉSTIMO ----
+
+-- Registro de empréstimos de instrumentos (Depende de Pessoa)
 CREATE TABLE tb_Emprestimo (
     codigo_Emprestimo INT PRIMARY KEY,
     data_Retirada DATE NOT NULL,
@@ -280,15 +187,79 @@ CREATE TABLE tb_Emprestimo (
     FOREIGN KEY (cpf_Autorizador) REFERENCES tb_Pessoa(pk_cpf)
 );
 
-CREATE TABLE tb_Item_Emprestimo (
-    id_Item INT PRIMARY KEY,
-    id_Emprestimo INT NOT NULL,
-    id_Instrumento VARCHAR(20) NOT NULL,
-    FOREIGN KEY (id_Emprestimo) REFERENCES tb_Emprestimo(codigo_Emprestimo),
-    FOREIGN KEY (id_Instrumento) REFERENCES tb_Instrumento(pk_num_Serie)
+
+-- =============================================================================
+-- 3. TABELAS DEPENDENTES (RELACIONAMENTOS / N:N / MÚLTIPLAS FKs)
+-- =============================================================================
+
+-- Relacionamento N:N entre Aluno e Responsável
+CREATE TABLE tb_Aluno_Responsavel (
+    fk_cpf_aluno CHAR(11),
+    fk_cpf_responsavel CHAR(11),
+    PRIMARY KEY (fk_cpf_aluno, fk_cpf_responsavel),
+    FOREIGN KEY (fk_cpf_aluno) REFERENCES tb_Aluno(pk_cpf),
+    FOREIGN KEY (fk_cpf_responsavel) REFERENCES tb_Responsavel(pk_cpf)
 );
 
--- ---- AVALIAÇÃO ----
+-- Relacionamento N:N entre Funcionário e Cargo
+CREATE TABLE tb_Funcionario_cargo (
+    fk_cpf_funcionario CHAR(11),
+    fk_cod_cargo INT,
+    PRIMARY KEY (fk_cpf_funcionario, fk_cod_cargo),
+    FOREIGN KEY (fk_cpf_funcionario) REFERENCES tb_Funcionario(pk_cpf_func),
+    FOREIGN KEY (fk_cod_cargo) REFERENCES tb_Cargo(pk_cod_Cargo)
+);
+
+-- Turmas vinculadas a um curso
+CREATE TABLE tb_Turma (
+    pk_nome_Turma VARCHAR(20),
+    pk_horario VARCHAR(20),
+    fk_cod_Curso INT,
+    idade_min INT NOT NULL,
+    idade_max INT NOT NULL,
+    qtd_alunos INT NOT NULL,
+    horario_inicio TIME NOT NULL,
+    hora_fim TIME NOT NULL,
+    PRIMARY KEY (pk_nome_Turma, pk_horario),
+    FOREIGN KEY (fk_cod_Curso) REFERENCES tb_Curso(pk_cod_Curso)
+);
+
+-- Matrícula vincula Aluno a uma Turma
+CREATE TABLE tb_Matricula (
+    id_Matricula INT AUTO_INCREMENT,
+    pk_cpf CHAR(11),
+    data_Matricula DATE NOT NULL,
+    fk_nome_Turma VARCHAR(20),
+    fk_horario VARCHAR(20),
+    periodo VARCHAR(10) NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id_Matricula, pk_cpf),
+    FOREIGN KEY (pk_cpf) REFERENCES tb_Aluno(pk_cpf),
+    FOREIGN KEY (fk_nome_Turma, fk_horario) REFERENCES tb_Turma(pk_nome_Turma, pk_horario)
+);
+
+-- Relacionamento entre Turma e os Funcionários que nela atuam
+CREATE TABLE tb_Turma_funcionario (
+    fk_nome_turma VARCHAR(20),
+    fk_cpf_funcionario CHAR(11),
+    fk_cod_tipo INT,
+    PRIMARY KEY (fk_nome_turma, fk_cpf_funcionario),
+    FOREIGN KEY (fk_nome_turma) REFERENCES tb_Turma(pk_nome_Turma),
+    FOREIGN KEY (fk_cpf_funcionario) REFERENCES tb_Funcionario(pk_cpf_func),
+    FOREIGN KEY (fk_cod_tipo) REFERENCES tb_Tipo_monitor(pk_cod_tipo)
+);
+
+-- Registro de presença vinculado à matrícula
+CREATE TABLE tb_Frequencia (
+    id_Frequencia INT AUTO_INCREMENT PRIMARY KEY,
+    data_aula DATE NOT NULL,
+    presenca BOOLEAN NOT NULL,
+    observacao VARCHAR(200),
+    id_Matricula INT NOT NULL,
+    FOREIGN KEY (id_Matricula) REFERENCES tb_Matricula(id_Matricula)
+);
+
+-- Avaliações feitas por funcionários sobre matrículas
 CREATE TABLE tb_Avaliacao (
     fk_id_matricula INT,
     data_avaliacao DATE,
@@ -300,7 +271,83 @@ CREATE TABLE tb_Avaliacao (
     FOREIGN KEY (fk_cpf_funcionario) REFERENCES tb_Funcionario(pk_cpf_func)
 );
 
--- ---- MANUTENÇÃO ----
+-- Relacionamento N:N entre Pessoas e Bandas
+CREATE TABLE tb_Banda_Pessoa (
+    pk_cod_Banda INT,
+    pk_cpf_banda CHAR(11),
+    funcao_Banda VARCHAR(30) NOT NULL,
+    data_Ingresso DATE,
+    PRIMARY KEY (pk_cod_Banda, pk_cpf_banda),
+    FOREIGN KEY (pk_cod_Banda) REFERENCES tb_Banda(pk_cod_Banda),
+    FOREIGN KEY (pk_cpf_banda) REFERENCES tb_Pessoa(pk_cpf)
+);
+
+-- Repertório das Bandas
+CREATE TABLE tb_Banda_Musica (
+    pk_cod_Banda INT,
+    pk_ISRC CHAR(12),
+    ordem_Repertorio INT,
+    PRIMARY KEY (pk_cod_Banda, pk_ISRC),
+    FOREIGN KEY (pk_cod_Banda) REFERENCES tb_Banda(pk_cod_Banda),
+    FOREIGN KEY (pk_ISRC) REFERENCES tb_Musica(pk_ISRC)
+);
+
+-- Gravações de músicas por bandas
+CREATE TABLE tb_Gravacao (
+    pk_id_gravacao INT AUTO_INCREMENT PRIMARY KEY,
+    nome_arquivo VARCHAR(100) NOT NULL,
+    caminho_arquivo VARCHAR(255) NOT NULL,
+    data_gravacao DATE NOT NULL,
+    fk_cod_banda INT,
+    fk_ISRC CHAR(12),
+    FOREIGN KEY (fk_cod_banda) REFERENCES tb_Banda(pk_cod_Banda),
+    FOREIGN KEY (fk_ISRC) REFERENCES tb_Musica(pk_ISRC)
+);
+
+-- Pessoas que participam de eventos
+CREATE TABLE tb_Pessoa_Evento (
+    fk_cpf_evento CHAR(11),
+    fk_cod_evento INT,
+    PRIMARY KEY (fk_cpf_evento),
+    FOREIGN KEY (fk_cpf_evento) REFERENCES tb_Pessoa(pk_cpf),
+    FOREIGN KEY (fk_cod_evento) REFERENCES tb_Evento(pk_cod_evento)
+);
+
+-- Autorizações para menores em eventos
+CREATE TABLE tb_Autorizacao_Evento (
+    pk_cpf_aluno CHAR(11),
+    pk_cod_evento INT,
+    pk_cpf_responsavel CHAR(11),
+    data_emissao DATE NOT NULL,
+    autorizado BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (pk_cpf_aluno, pk_cod_evento, pk_cpf_responsavel),
+    FOREIGN KEY (pk_cpf_aluno) REFERENCES tb_Aluno(pk_cpf),
+    FOREIGN KEY (pk_cod_evento) REFERENCES tb_Evento(pk_cod_evento),
+    FOREIGN KEY (pk_cpf_responsavel) REFERENCES tb_Responsavel(pk_cpf)
+);
+
+-- Autorizações de uso de imagem
+CREATE TABLE tb_Autorizacao_imagem (
+    pk_id_autorizacao INT AUTO_INCREMENT PRIMARY KEY,
+    data_autorizacao DATE NOT NULL,
+    autorizacao BOOLEAN NOT NULL,
+    observacao VARCHAR(200),
+    fk_cpf_aluno CHAR(11),
+    fk_cpf_responsavel CHAR(11),
+    FOREIGN KEY (fk_cpf_aluno) REFERENCES tb_Aluno(pk_cpf),
+    FOREIGN KEY (fk_cpf_responsavel) REFERENCES tb_Responsavel(pk_cpf)
+);
+
+-- Itens específicos de um empréstimo (Depende de Emprestimo e Instrumento)
+CREATE TABLE tb_Item_Emprestimo (
+    id_Item INT PRIMARY KEY,
+    id_Emprestimo INT NOT NULL,
+    id_Instrumento VARCHAR(20) NOT NULL,
+    FOREIGN KEY (id_Emprestimo) REFERENCES tb_Emprestimo(codigo_Emprestimo),
+    FOREIGN KEY (id_Instrumento) REFERENCES tb_Instrumento(pk_num_Serie)
+);
+
+-- Registro de manutenção (Depende de Instrumento e Financeiro)
 CREATE TABLE tb_Manutencao_Instrumento (
     fk_num_serie VARCHAR(20),
     data_manutencao DATE,
