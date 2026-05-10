@@ -106,8 +106,6 @@ CREATE TABLE tb_Turma (
 CREATE TABLE tb_Matricula (
     id_matricula INT AUTO_INCREMENT UNIQUE,
     pk_cpf CHAR(11),
-    ano INT,
-    semestre INT,
     fk_nome_Turma VARCHAR(20),
     fk_cod_Curso INT,
     data_matricula DATE NOT NULL,
